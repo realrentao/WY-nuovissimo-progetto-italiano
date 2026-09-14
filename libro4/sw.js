@@ -1,7 +1,7 @@
 /* ============================================================
    NPI Service Worker
    - *.mp3        ：CacheFirst，听过一次即永久本地命中，兼容 Range 206
-   - js/ css/     ：StaleWhileRevalidate，二次访问秒开，后台自动更新
+   - js/ css/     ：NetworkFirst（强制 revalidate），保证改动即时生效，离线回退缓存
    - HTML / data/ ：一律走网络，保证教材内容更新即时生效
    ============================================================ */
 const CACHE_NAME = 'npi-audio-v3';
@@ -50,15 +50,17 @@ function sliceResponse(cached, start, end, size) {
   });
 }
 
-/* 壳资源：先给缓存（极快），同时后台静默更新，下次访问即为最新 */
+/* 壳资源：网络优先（强制 revalidate，保证改动即时生效），离线时回退缓存 */
 async function shellSWR(req) {
   const cache = await caches.open(SHELL_CACHE);
-  const cached = await cache.match(req);
-  const network = fetch(req, { cache: 'no-cache' }).then((resp) => {
+  try {
+    const resp = await fetch(req, { cache: 'no-cache' });
     if (resp && resp.status === 200) cache.put(req, resp.clone()).catch(() => {});
     return resp;
-  }).catch(() => null);
-  return cached || (await network) || Response.error();
+  } catch (e) {
+    const cached = await cache.match(req);
+    return cached || Response.error();
+  }
 }
 
 self.addEventListener('fetch', (event) => {
