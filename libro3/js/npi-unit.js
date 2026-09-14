@@ -1,20 +1,57 @@
 /* ============================================================
-   NPI 2 · 单元页渲染：按原书 sections 分节结构渲染
+   NPI · 单元页渲染：按原书 sections 分节结构渲染
    消费 window.NPI.units[NPI_UNIT] 的 sections 数组
+
+   对话部分：data/dlg-XX.js 给出「每行对话 → 专属音色音频 + 说话人性别」，
+   不同角色使用不同音色（男/女声池），气泡按性别着色并给出人物图例。
    ============================================================ */
 (function () {
   const UNIT = window.NPI_UNIT;
   const esc = (s) =>
     (s || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-  /* 发音：点击带 data-spk 的元素即朗读其文本 */
+  /* 发音：点击带 data-spk 的元素即朗读其文本（有 data-audio 时用角色专属音色） */
   document.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-spk]');
-    if (t) { e.preventDefault(); speak(t.dataset.spk); }
+    const t = e.target.closest('[data-spk],[data-audio]');
+    if (t && !t.closest('.dlg-legend')) { e.preventDefault(); NPI_speakNode(t); }
   });
 
   function spk(text, extra) {
     return `<span class="spk" data-spk="${esc(text)}"${extra ? ' ' + extra : ''}>${esc(text)}<span class="spk-ico">🔊</span></span>`;
+  }
+
+  /* ---------- 对话：角色音色 ---------- */
+  const G_ICON = { M: '♂', F: '♀', N: '❖' };
+  const G_NAME = { M: '男声', F: '女声', N: '旁白' };
+
+  function dlgEntry(secId, i) {
+    const m = window.NPI_DLG || {};
+    return m[UNIT + '#' + secId + '#' + i] || null;
+  }
+
+  function renderDialogue(sec) {
+    const seen = new Map();                       // 说话人 -> 性别，用于图例
+    const lines = (sec.lines || []).map((l, i) => {
+      const d = dlgEntry(sec.id, i);
+      const g = d && d.v ? d.v.charAt(0) : 'N';
+      const who = l.who || '';
+      if (who && !seen.has(who)) seen.set(who, g);
+      const audioAttr = d && d.p ? ` data-audio="${esc(d.p)}"` : '';
+      const badge = who ? `<span class="g-badge" title="本角色使用${G_NAME[g]}">${G_ICON[g]}</span>` : '';
+      return `<div class="dlg-line g-${g.toLowerCase()}">
+        <div class="dlg-who">${esc(who)}${badge}</div>
+        <div class="dlg-bubble">
+          <span class="dlg-it" data-spk="${esc(l.it)}"${audioAttr}>${esc(l.it)}<span class="spk-ico">🔊</span></span>
+          ${l.zh ? `<span class="dlg-zh">${esc(l.zh)}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+    let legend = '';
+    if (seen.size > 1) {
+      legend = `<div class="dlg-legend">${Array.from(seen.entries()).map(([w, g]) =>
+        `<span class="lg g-${g.toLowerCase()}">${G_ICON[g]} ${esc(w)}</span>`).join('')}</div>`;
+    }
+    return legend + '<div class="dlg">' + lines + '</div>';
   }
 
   function renderUnitHeader(u) {
@@ -34,8 +71,13 @@
         return `<div class="gram-block"><div class="gram-title">${esc(b.title || 'Osservate')}</div><ul class="quote-list">${lines}</ul></div>`;
       }
       if (b.kind === 'table') {
+        /* audioCols：指定哪些列（0-based）的意大利语内容可点击朗读；缺省不发音 */
+        const audioCols = Array.isArray(b.audioCols) ? b.audioCols : null;
         const head = (b.head || []).map((h) => `<th>${esc(h)}</th>`).join('');
-        const rows = (b.rows || []).map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`).join('');
+        const rows = (b.rows || []).map((r) => `<tr>${r.map((c, ci) => {
+          const cell = esc(c);
+          return (audioCols && audioCols.includes(ci)) ? `<td>${spk(c)}</td>` : `<td>${cell}</td>`;
+        }).join('')}</tr>`).join('');
         return `<div class="gram-block"><div class="gram-title">${esc(b.title || '')}</div><table class="npi-table"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
       }
       if (b.kind === 'text') {
@@ -62,15 +104,7 @@
       const prev = (sec.preview || []).map((p) => `<span class="chip">${spk(p.it)} <i>${esc(p.zh)}</i></span>`).join('');
       inner = `<ul class="goal-list">${goals}</ul>${prev ? `<div class="preview-row">${prev}</div>` : ''}`;
     } else if (sec.type === 'dialogue') {
-      const lines = (sec.lines || []).map((l) => `
-        <div class="dlg-line">
-          <div class="dlg-who">${esc(l.who || '')}</div>
-          <div class="dlg-bubble">
-            <span class="dlg-it" data-spk="${esc(l.it)}">${esc(l.it)}<span class="spk-ico">🔊</span></span>
-            ${l.zh ? `<span class="dlg-zh">${esc(l.zh)}</span>` : ''}
-          </div>
-        </div>`).join('');
-      inner = `<div class="dlg">${lines}</div>` + renderBlocks(sec.blocks);
+      inner = renderDialogue(sec) + renderBlocks(sec.blocks);
     } else if (sec.type === 'grammar') {
       inner = renderBlocks(sec.blocks);
     } else if (sec.type === 'vocab') {
