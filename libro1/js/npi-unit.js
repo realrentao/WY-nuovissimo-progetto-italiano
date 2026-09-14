@@ -71,8 +71,13 @@
         return `<div class="gram-block"><div class="gram-title">${esc(b.title || 'Osservate')}</div><ul class="quote-list">${lines}</ul></div>`;
       }
       if (b.kind === 'table') {
+        /* audioCols：指定哪些列（0-based）的意大利语内容可点击朗读；缺省不发音 */
+        const audioCols = Array.isArray(b.audioCols) ? b.audioCols : null;
         const head = (b.head || []).map((h) => `<th>${esc(h)}</th>`).join('');
-        const rows = (b.rows || []).map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`).join('');
+        const rows = (b.rows || []).map((r) => `<tr>${r.map((c, ci) => {
+          const cell = esc(c);
+          return (audioCols && audioCols.includes(ci)) ? `<td>${spk(c)}</td>` : `<td>${cell}</td>`;
+        }).join('')}</tr>`).join('');
         return `<div class="gram-block"><div class="gram-title">${esc(b.title || '')}</div><table class="npi-table"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
       }
       if (b.kind === 'text') {
