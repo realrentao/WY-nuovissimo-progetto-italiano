@@ -367,3 +367,14 @@ body {
 
 /* 音频按钮 / 朗读元素不做延迟渲染，保证点击区域始终可交互 */
 .spk, .dlg-it, .entry .it, .entry .it-s { content-visibility: visible; }
+
+/* 发音进行中高亮（打断机制可见反馈） */
+[data-spk].npi-playing, [data-audio].npi-playing {
+  color: var(--ne-red);
+  background: rgba(31, 97, 141, .10);
+  border-radius: 4px;
+}
+[data-spk].npi-playing .spk-ico, [data-audio].npi-playing .spk-ico {
+  animation: npi-pulse 1s ease-in-out infinite;
+}
+@keyframes npi-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }

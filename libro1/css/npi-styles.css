@@ -397,3 +397,14 @@ body {
   background: var(--ne-cream); border: 1px solid var(--line); }
 .dlg-legend .lg.g-f { color: #1A5276; border-color: #AED6F1; }
 .dlg-legend .lg.g-m { color: #1A5276; border-color: #B7D3E8; }
+
+/* 发音进行中高亮（打断机制可见反馈） */
+[data-spk].npi-playing, [data-audio].npi-playing {
+  color: var(--ne-red);
+  background: rgba(31, 97, 141, .10);
+  border-radius: 4px;
+}
+[data-spk].npi-playing .spk-ico, [data-audio].npi-playing .spk-ico {
+  animation: npi-pulse 1s ease-in-out infinite;
+}
+@keyframes npi-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }

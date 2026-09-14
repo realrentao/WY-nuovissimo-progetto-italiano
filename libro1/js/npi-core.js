@@ -72,26 +72,43 @@ function NPI_resolveSrc(text) {
 /* ---------- 播放 ---------- */
 /* 复用同一个 Audio 实例，避免每次点击都新建元素；已下载过的 mp3 命中 HTTP 缓存 / SW 缓存 */
 let NPI_currentAudio = null;
+let NPI_currentEl = null;          // 当前正在发音的元素（高亮 + 再次点击停止）
 
-function NPI_playSrc(src, fallbackText) {
+function NPI_clearPlayingClass() {
+  if (NPI_currentEl) { NPI_currentEl.classList.remove('npi-playing'); NPI_currentEl = null; }
+}
+
+/* 打断机制：停止当前正在播放的音频并清掉高亮 */
+function NPI_stopAudio() {
+  if (NPI_currentAudio) {
+    try { NPI_currentAudio.pause(); } catch (e) {}
+    try { NPI_currentAudio.currentTime = 0; } catch (e) {}
+  }
+  NPI_clearPlayingClass();
+}
+
+function NPI_playSrc(src, fallbackText, el) {
   if (!src) { NPI_flashMissing(fallbackText); return; }
+  /* 打断：新音频打开，在播音频自动停止 */
+  if (NPI_currentAudio && !NPI_currentAudio.paused) NPI_stopAudio();
   if (!NPI_currentAudio) NPI_currentAudio = new Audio();
   const a = NPI_currentAudio;
-  a.pause();
-  try { a.currentTime = 0; } catch (e) { /* 尚未加载时忽略 */ }
+  NPI_clearPlayingClass();
+  if (el) { el.classList.add('npi-playing'); NPI_currentEl = el; }
+  a.onended = () => NPI_clearPlayingClass();
   a.src = src;
   a.play().catch(() => NPI_flashMissing(fallbackText));
 }
 
 /* 点击带 data-spk 的元素：优先用 data-audio 直给路径（对话角色音色），否则查清单 */
-function speak(text) {
+function speak(text, el) {
   if (!text) return;
   const src = NPI_resolveSrc(text);
-  if (src) { NPI_playSrc(src, text); return; }
+  if (src) { NPI_playSrc(src, text, el); return; }
   if (!window.NPI_AUDIO) {
     NPI_ensureAudio().then(() => {
       const s2 = NPI_resolveSrc(text);
-      if (s2) NPI_playSrc(s2, text); else NPI_flashMissing(text);
+      if (s2) NPI_playSrc(s2, text, el); else NPI_flashMissing(text);
     });
     return;
   }
@@ -100,8 +117,13 @@ function speak(text) {
 
 function NPI_speakNode(el) {
   const direct = el.getAttribute('data-audio');
-  if (direct) { NPI_playSrc(direct, el.getAttribute('data-spk') || ''); return; }
-  speak(el.getAttribute('data-spk'));
+  /* 再次点击正在播放的同一元素 → 停止（打断 / 切换） */
+  if (el === NPI_currentEl && NPI_currentAudio) {
+    NPI_stopAudio();
+    return;
+  }
+  if (direct) { NPI_playSrc(direct, el.getAttribute('data-spk') || '', el); return; }
+  speak(el.getAttribute('data-spk'), el);
 }
 
 function NPI_flashMissing(text) {
