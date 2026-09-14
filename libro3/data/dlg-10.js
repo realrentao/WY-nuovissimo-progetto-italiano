@@ -1,0 +1,2 @@
+window.NPI_DLG = window.NPI_DLG || {};
+Object.assign(window.NPI_DLG, {"10#A#0":{"v":"Fisab","p":"audio/dlg/0064_isab_f28a97e1.mp3"},"10#A#1":{"v":"Fisab","p":"audio/dlg/0065_isab_d21e614b.mp3"},"10#A#2":{"v":"Fisab","p":"audio/dlg/0066_isab_06bcb807.mp3"},"10#A#3":{"v":"Fisab","p":"audio/dlg/0067_isab_e6e51d70.mp3"},"10#A#4":{"v":"Mdieg","p":"audio/dlg/0068_diego_7f023b4c.mp3"},"10#A#5":{"v":"Mdieg","p":"audio/dlg/0069_diego_1a9a7172.mp3"},"10#A#6":{"v":"Mdieg","p":"audio/dlg/0070_diego_353a1066.mp3"},"10#A#7":{"v":"Mdieg","p":"audio/dlg/0071_diego_3bd12f2f.mp3"}});

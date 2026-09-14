@@ -1,0 +1,2 @@
+window.NPI_DLG = window.NPI_DLG || {};
+Object.assign(window.NPI_DLG, {"22#A#0":{"v":"Nelsa","p":"audio/2352_03c23280.mp3"},"22#A#1":{"v":"Nelsa","p":"audio/2353_6e550528.mp3"},"22#A#2":{"v":"Nelsa","p":"audio/2354_aa43e751.mp3"},"22#A#3":{"v":"Nelsa","p":"audio/2355_b7346e36.mp3"},"22#A#4":{"v":"Nelsa","p":"audio/2356_d0d34afa.mp3"},"22#A#5":{"v":"Nelsa","p":"audio/2357_d54cb7fc.mp3"},"22#A#6":{"v":"Nelsa","p":"audio/2358_61aa0ebd.mp3"}});
