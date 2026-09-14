@@ -1444,7 +1444,7 @@ Object.assign(window.NPI_AUDIO, {
 "Che peccato! È finito il latte!": "audio/1564_af2887c5.mp3",
 "Scusi, signore, sa dov'è via Alberti?": "audio/1229_581bbe14.mp3",
 "Il cielo sarà nuvoloso.": "audio/1453_de42d806.mp3",
-"Ciao, io mi chiamo Andrea, e tu?": "audio/1173_6d483503.mp3",
+"Ciao, io mi chiamo Andrea, e tu?":"audio/1173_6d483503_m.mp3",
 "Alzati che devi andare a lezione!": "audio/1676_96ff7de4.mp3",
 "Di chi è questa rivista? È tua, Gino?": "audio/1341_be768d84.mp3",
 "Proviamo questi ai cereali? Hanno meno calorie e io sono a dieta.": "audio/1565_1a7fce3a.mp3",
