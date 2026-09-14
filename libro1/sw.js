@@ -5,7 +5,7 @@
    - HTML / data/ ：一律走网络，保证教材内容更新即时生效
    ============================================================ */
 const CACHE_NAME = 'npi-audio-v3';
-const SHELL_CACHE = 'npi-shell-v1';
+const SHELL_CACHE = 'npi-shell-v2';
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -54,7 +54,7 @@ function sliceResponse(cached, start, end, size) {
 async function shellSWR(req) {
   const cache = await caches.open(SHELL_CACHE);
   const cached = await cache.match(req);
-  const network = fetch(req).then((resp) => {
+  const network = fetch(req, { cache: 'no-cache' }).then((resp) => {
     if (resp && resp.status === 200) cache.put(req, resp.clone()).catch(() => {});
     return resp;
   }).catch(() => null);
